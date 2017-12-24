@@ -1,0 +1,11 @@
+# $HOME/.config/systemd/user/goes16-background.timer
+
+[Unit]
+Description=Run goes16-background every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target
