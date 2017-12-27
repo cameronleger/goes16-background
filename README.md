@@ -26,26 +26,27 @@ near-realtime picture of Earth.
 * any other desktop environments that are not mentioned above.
 
 ## Configuration
-    usage:  [-h] [--version] [-s {339, 678, 1808, 5424, 10848}]
-            [-d DEADLINE] [--save-battery] [--output-dir OUTPUT_DIR]
-    
-    set (near-realtime) picture of Earth as your desktop background
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      --version             show program's version number and exit
-      -l {339, 678, 1808, 5424, 10848}, --level {339, 678, 1808, 5424, 10848}
-                            increases the quality (and the size) the image.
-                            possible values are 339, 678, 1808, 5424, 10848
-      -d DEADLINE, --deadline DEADLINE
-                            deadline in minutes to download all the tiles, set 0
-                            to cancel
-      --save-battery        stop updating on battery
-      --output-dir OUTPUT_DIR
-                            directory to save the temporary background image
-      --composite-over COMPOSITE_OVER
-                            image to composite the background image over
+```
+usage:  [-h] [--version] [-s {339, 678, 1808, 5424, 10848}]
+        [-d DEADLINE] [--save-battery] [--output-dir OUTPUT_DIR]
 
+set (near-realtime) picture of Earth as your desktop background
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+  -l {339, 678, 1808, 5424, 10848}, --level {339, 678, 1808, 5424, 10848}
+                        increases the quality (and the size) the image.
+                        possible values are 339, 678, 1808, 5424, 10848
+  -d DEADLINE, --deadline DEADLINE
+                        deadline in minutes to download all the tiles, set 0
+                        to cancel
+  --save-battery        stop updating on battery
+  --output-dir OUTPUT_DIR
+                        directory to save the temporary background image
+  --composite-over COMPOSITE_OVER
+                        image to composite the background image over
+```
 
 Increasing the size will increase the quality of the image, the time taken to download and the
 memory consumption.
@@ -61,46 +62,48 @@ If you pass an image path with `--composite-over`, the image from goes16-backgro
 If you use nitrogen for setting your wallpaper, you have to enter this in your
 `~/.config/nitrogen/bg-saved.cfg`.
 
-    [:0.0]
-    file=/home/USERNAME/.goes16-background/goes16-latest.png
-    mode=4
-    bgcolor=#000000
+```
+[:0.0]
+file=/home/USERNAME/.goes16-background/goes16-latest.png
+mode=4
+bgcolor=#000000
+```
     
 ## Installation
 * You need a valid python3 installation including the python3-setuptools package
+```
+cd ~
+git clone https://github.com/cameronleger/goes16-background.git
 
+# install
+sudo python3 setup.py install
 
-    cd ~
-    git clone https://github.com/cameronleger/goes16-background.git
+# test whether it's working
+goes16-background
 
-    # install
-    sudo python3 setup.py install
+# Get the installation path of goes16-background by running the command
+which -- goes16-background
 
-    # test whether it's working
-    goes16-background
+# Set goes16-background to be called periodically
 
-    # Get the installation path of goes16-background by running the command
-    which -- goes16-background
+    ## Either set up a cronjob
+        crontab -e
 
-    # Set goes16-background to be called periodically
+        ### Add the line:
+        */10 * * * * <INSTALLATION_PATH> # command line arguments here
 
-        ## Either set up a cronjob
-            crontab -e
+    ## OR, alternatively use the provided systemd timer
 
-            ### Add the line:
-            */10 * * * * <INSTALLATION_PATH> # command line arguments here
+        ### Configure
+        vi systemd/goes16-background.service
+        # Replace "<INSTALLATION_PATH>" with the output of the aforementioned command and command line arguments
 
-        ## OR, alternatively use the provided systemd timer
+        ### Copy systemd configuration
+        cp systemd/goes16-background.{service,timer} ~/.config/systemd/user/
 
-            ### Configure
-            vi systemd/goes16-background.service
-            # Replace "<INSTALLATION_PATH>" with the output of the aforementioned command and command line arguments
-
-            ### Copy systemd configuration
-            cp systemd/goes16-background.{service,timer} ~/.config/systemd/user/
-
-            ### Enable and start the timer
-            systemctl --user enable --now goes16-background.timer
+        ### Enable and start the timer
+        systemctl --user enable --now goes16-background.timer
+```
 
 ### For KDE Users
 #### KDE 5.7+
@@ -133,8 +136,10 @@ Many thanks to [xenithorb](https://github.com/xenithorb) [for the solution](http
 OSX has deprecated crontab, and replaced it with `launchd`. To set up a launch agent, copy the provided sample `plist`
 file in `osx/org.cameronleger.goes16-background.plist` to `~/Library/LaunchAgents`, and edit the following entries if required
 
-    mkdir -p ~/Library/LaunchAgents/
-    cp osx/org.cameronleger.goes16-background.plist ~/Library/LaunchAgents/
+```
+mkdir -p ~/Library/LaunchAgents/
+cp osx/org.cameronleger.goes16-background.plist ~/Library/LaunchAgents/
+```
 
 * `ProgrammingArguments` needs to be the path to goes16-background installation. This *should* be `/usr/local/bin/goes16-background`
 by default, but goes16-background may be installed elsewhere.
@@ -143,22 +148,24 @@ by default, but goes16-background may be installed elsewhere.
 edit as desired.
 
 Finally, to launch it, enter this into the console:
-
-    launchctl load ~/Library/LaunchAgents/org.cameronleger.goes16-background.plist
-
+```
+launchctl load ~/Library/LaunchAgents/org.cameronleger.goes16-background.plist
+```
 
 ## Uninstallation
-    # Remove the cronjob
-    crontab -e
-    # Remove the line
-    */10 * * * * <INSTALLATION_PATH>
+```
+# Remove the cronjob
+crontab -e
+# Remove the line
+*/10 * * * * <INSTALLATION_PATH>
 
-    # OR if you used the systemd timer
-    systemctl --user disable --now goes16-background.timer
-    rm $HOME/.config/systemd/user/goes16-background.{timer,service}
+# OR if you used the systemd timer
+systemctl --user disable --now goes16-background.timer
+rm $HOME/.config/systemd/user/goes16-background.{timer,service}
 
-    # Uninstall the package
-    sudo pip3 uninstall goes16-background
+# Uninstall the package
+sudo pip3 uninstall goes16-background
+```
 
 If you would like to share why, you can contact me on github or
 [send an e-mail](mailto:contact@cameronleger.com).
