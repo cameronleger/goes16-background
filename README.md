@@ -2,13 +2,13 @@
 *Put near-realtime picture of Earth as your desktop background*
 
 goes16-background is a Python 3 script that fetches near-realtime (~15 minutes delayed)
-Full Disk GeoColor image of Earth as its taken by
+Full Disk Natural Color image of Earth as its taken by
 [GOES-16](https://en.wikipedia.org/wiki/GOES-16) and sets it
 as your desktop background.
 
 ![Example](/example.png?raw=true "Example")
 
-Set a cronjob (or systemd service) that runs in every 10 minutes to automatically get the
+Set a cronjob (or systemd service) that runs in every 15 minutes to automatically get the
 near-realtime picture of Earth.
 
 ## Supported Desktop Environments
@@ -27,21 +27,23 @@ near-realtime picture of Earth.
 
 ## Configuration
 ```
-usage:  [-h] [--version] [-s {339, 678, 1808, 5424, 10848}]
-        [-d DEADLINE] [--save-battery] [--output-dir OUTPUT_DIR]
+usage: goes16-background [-h] [--version] [-s {678,1356,2712,5424,10848}]
+                         [-d DEADLINE] [--save-battery]
+                         [--output-dir OUTPUT_DIR]
+                         [--composite-over COMPOSITE_OVER]
 
 set (near-realtime) picture of Earth as your desktop background
 
 optional arguments:
   -h, --help            show this help message and exit
   --version             show program's version number and exit
-  -l {339, 678, 1808, 5424, 10848}, --level {339, 678, 1808, 5424, 10848}
+  -s {678,1356,2712,5424,10848}, --size {678,1356,2712,5424,10848}
                         increases the quality (and the size) the image.
-                        possible values are 339, 678, 1808, 5424, 10848
+                        possible values are 678, 1356, 2712, 5424, 10848
   -d DEADLINE, --deadline DEADLINE
-                        deadline in minutes to download all the tiles, set 0
-                        to cancel
-  --save-battery        stop updating on battery
+                        deadline in minutes to download the image, set 0 to
+                        cancel
+  --save-battery        stop refreshing on battery
   --output-dir OUTPUT_DIR
                         directory to save the temporary background image
   --composite-over COMPOSITE_OVER
@@ -68,7 +70,7 @@ file=/home/USERNAME/.goes16-background/goes16-latest.png
 mode=4
 bgcolor=#000000
 ```
-    
+
 ## Installation
 * You need a valid python3 installation including the python3-setuptools package
 ```
@@ -157,7 +159,7 @@ launchctl load ~/Library/LaunchAgents/org.cameronleger.goes16-background.plist
 # Remove the cronjob
 crontab -e
 # Remove the line
-*/10 * * * * <INSTALLATION_PATH>
+*/15 * * * * <INSTALLATION_PATH>
 
 # OR if you used the systemd timer
 systemctl --user disable --now goes16-background.timer

@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import subprocess
+import urllib.request
 from distutils.version import LooseVersion
 
 
@@ -171,3 +172,22 @@ def is_discharging():
         status = f.readline().strip()
 
         return status == "Discharging"
+
+
+def download(url):
+    exception = None
+
+    for i in range(1, 4):  # retry max 3 times
+        try:
+            with urllib.request.urlopen(url) as response:
+                return response.read()
+        except Exception as e:
+            exception = e
+            print("[{}/3] Retrying to download '{}'...".format(i, url))
+            time.sleep(1)
+            pass
+
+    if exception:
+        raise exception
+    else:
+        sys.exit("Could not download '{}'!\n".format(url))

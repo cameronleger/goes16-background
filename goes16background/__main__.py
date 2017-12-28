@@ -6,6 +6,7 @@ import io
 import itertools as it
 import json
 from lxml import html
+import math
 import multiprocessing as mp
 import multiprocessing.dummy as mp_dummy
 import os
@@ -22,12 +23,14 @@ import appdirs
 from PIL import Image, ImageDraw, ImageFilter
 from dateutil.tz import tzlocal
 
-from .utils import set_background, get_desktop_environment, is_discharging
+from .utils import set_background, get_desktop_environment, is_discharging, download
 
 
 # Semantic Versioning: Major, Minor, Patch
-GOES16_BG_VERSION = (1, 0, 0)
-QUERY_URL = "https://www.star.nesdis.noaa.gov/GOES/GOES16_FullDisk.php"
+GOES16_BG_VERSION = (1, 1, 0)
+counter = None
+TILE_SIZE = 678
+BASE_URL = "http://rammb-slider.cira.colostate.edu/data"
 
 # The image is yuuge
 warnings.simplefilter('ignore', Image.DecompressionBombWarning)
@@ -35,14 +38,12 @@ warnings.simplefilter('ignore', Image.DecompressionBombWarning)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="set (near-realtime) picture of Earth as your desktop background",
-                                     epilog="http://github.com/cameronleger/goes16background")
+                                     epilog="http://github.com/cameronleger/goes16-background")
 
     parser.add_argument("--version", action="version", version="%(prog)s {}.{}.{}".format(*GOES16_BG_VERSION))
 
-    group = parser.add_mutually_exclusive_group()
-
-    parser.add_argument("-s", "--size", type=int, choices=[339, 678, 1808, 5424, 10848], dest="size", default=1808,
-                        help="increases the quality (and the size) the image. possible values are 339, 678, 1808, 5424, 10848")
+    parser.add_argument("-s", "--size", type=int, choices=[678, 1356, 2712, 5424, 10848], dest="size", default=1356,
+                        help="increases the quality (and the size) the image. possible values are 678, 1356, 2712, 5424, 10848")
     parser.add_argument("-d", "--deadline", type=int, dest="deadline", default=6,
                         help="deadline in minutes to download the image, set 0 to cancel")
     parser.add_argument("--save-battery", action="store_true", dest="save_battery", default=False,
@@ -54,7 +55,11 @@ def parse_args():
                         help="image to composite the background image over",
                         default=None)
 
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
+    except:
+        parser.print_help()
+        sys.exit(0)
 
     if not args.deadline >= 0:
         sys.exit("DEADLINE has to be greater than (or equal to if you want to disable) zero!\n")
@@ -62,23 +67,22 @@ def parse_args():
     return args
 
 
-def download(url):
-    exception = None
+def download_chunk(args):
+    global counter
 
-    for i in range(1, 4):  # retry max 3 times
-        try:
-            with urllib.request.urlopen(url) as response:
-                return response.read()
-        except Exception as e:
-            exception = e
-            print("[{}/3] Retrying to download '{}'...".format(i, url))
-            time.sleep(1)
-            pass
+    base_url, latest, x, y, level, tile_count = args
+    url_format = base_url + "/imagery/{}/goes-16---full_disk/natural_color/{}/0{}/00{}_00{}.png"
+    url = url_format.format(strftime("%Y%m%d", latest), strftime("%Y%m%d%H%M%S", latest), level, y, x)
 
-    if exception:
-        raise exception
-    else:
-        sys.exit("Could not download '{}'!\n".format(url))
+    tiledata = download(url)
+
+    with counter.get_lock():
+        counter.value += 1
+        if counter.value == tile_count * tile_count:
+            print("Downloading tiles: completed.")
+        else:
+            print("Downloading tiles: {}/{} completed...".format(counter.value, tile_count * tile_count))
+    return x, y, tiledata
 
 
 def exit_thread(message):
@@ -87,21 +91,17 @@ def exit_thread(message):
 
 
 def thread_main(args):
+    global counter
+    counter = mp.Value("i", 0)
+
+    tile_count = int(args.size / TILE_SIZE)
+    level = int(math.log(tile_count, 2))
+
     print("Updating...")
-    latest_html = download(QUERY_URL)
-    html_tree = html.fromstring(latest_html)
+    latest_json = download("{}/json/goes-16/full_disk/natural_color/latest_times.json".format(BASE_URL))
+    latest = strptime(str(json.loads(latest_json.decode("utf-8"))["timestamps_int"][0]), "%Y%m%d%H%M%S")
 
-    print("//a[contains(@title, 'GeoColor') and .='{0} x {0} px']".format(args.size))
-    latest_link = html_tree.xpath("//a[contains(@title, 'GeoColor') and .='{0} x {0} px']".format(args.size))[0]
-    if latest_link is None:
-        exit_thread("Unable to find Latest Link for GeoColor Full Disk Images")
-
-    print(latest_link.text)
-
-    print("Latest image: {}.".format(latest_link.get('title')))
-
-    download_url = latest_link.get("href")
-    print("Download URL: {}".format(download_url))
+    print("Latest version: {} UTC.".format(strftime("%Y/%m/%d %H:%M:%S", latest)))
 
     if args.composite_over is not None:
         print("Opening image to composite over...")
@@ -110,10 +110,18 @@ def thread_main(args):
         except Exception as e:
             exit_thread("Unable to open --composite-over image!\n")
 
-    goes16_width = args.size
-    goes16_height = args.size
-    print("Downloading image...")
-    goes16_img = Image.open(io.BytesIO(download(download_url)))
+    goes16_width = TILE_SIZE * tile_count
+    goes16_height = TILE_SIZE * tile_count
+    goes16_img = Image.new("RGB", (goes16_width, goes16_height))
+
+    p = mp_dummy.Pool(tile_count * tile_count)
+    print("Downloading tiles...")
+    res = p.map(download_chunk, it.product((BASE_URL,), (latest,), range(tile_count), range(tile_count), (level,), (tile_count,)))
+
+    for (x, y, tiledata) in res:
+        tile = Image.open(io.BytesIO(tiledata))
+        goes16_img.paste(tile, (TILE_SIZE * x, TILE_SIZE * y, TILE_SIZE * (x + 1), TILE_SIZE * (y + 1)))
+
     output_img = goes16_img
 
     if args.composite_over is not None:
@@ -157,12 +165,12 @@ def thread_main(args):
 def main():
     args = parse_args()
 
-    print("goes16background {}.{}.{}".format(*GOES16_BG_VERSION))
+    print("goes16-background {}.{}.{}".format(*GOES16_BG_VERSION))
 
     if args.save_battery and is_discharging():
         sys.exit("Discharging!\n")
 
-    main_thread = threading.Thread(target=thread_main, args=(args,), name="goes16background-main-thread", daemon=True)
+    main_thread = threading.Thread(target=thread_main, args=(args,), name="goes16-background-main-thread", daemon=True)
     main_thread.start()
     main_thread.join(args.deadline * 60 if args.deadline else None)
 
