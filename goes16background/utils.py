@@ -4,6 +4,7 @@ import sys
 import subprocess
 import urllib.request
 from distutils.version import LooseVersion
+from glob import glob
 
 
 def set_background(file_path):
