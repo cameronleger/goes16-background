@@ -27,7 +27,7 @@ from .utils import set_background, get_desktop_environment, is_discharging, down
 
 
 # Semantic Versioning: Major, Minor, Patch
-GOES16_BG_VERSION = (1, 1, 0)
+GOES16_BG_VERSION = (1, 2, 0)
 counter = None
 TILE_SIZE = 678
 BASE_URL = "http://rammb-slider.cira.colostate.edu/data"

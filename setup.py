@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="goes16-background",
-    version="1.0.0",
+    version="1.2.0",
     url="http://github.com/cameronleger/goes16-background",
     author="Cameron Leger",
     author_email="contact@cameronleger.com",
