@@ -151,10 +151,10 @@ def thread_main(args):
 
         output_img = composite_img
 
-    for file in iglob(path.join(args.output_dir, "goes16-latest*.png")):
+    for file in iglob(path.join(args.output_dir, "goes16-*.png")):
         os.remove(file)
 
-    output_file = path.join(args.output_dir, "goes16-latest.png")
+    output_file = path.join(args.output_dir, strftime("goes16-%Y%m%dT%H%M%S.png", latest))
     print("Saving to '%s'..." % (output_file,))
     os.makedirs(path.dirname(output_file), exist_ok=True)
     output_img.save(output_file, "PNG")
