@@ -54,7 +54,7 @@ def parse_args():
     parser.add_argument("--composite-over", type=str, dest="composite_over",
                         help="image to composite the background image over",
                         default=None)
-    parser.add_argument("--no_set_bg", type=bool, dest="no_set_bg",
+    parser.add_argument("--no_set_bg", dest="no_set_bg", action='store_true',
                         help="do not try to set background, just download file", default=False)
 
 
