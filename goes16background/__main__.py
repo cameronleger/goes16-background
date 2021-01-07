@@ -54,6 +54,9 @@ def parse_args():
     parser.add_argument("--composite-over", type=str, dest="composite_over",
                         help="image to composite the background image over",
                         default=None)
+    parser.add_argument("--no_set_bg", dest="no_set_bg", action='store_true',
+                        help="do not try to set background, just download file", default=False)
+
 
     try:
         args = parser.parse_args()
@@ -159,8 +162,9 @@ def thread_main(args):
     os.makedirs(path.dirname(output_file), exist_ok=True)
     output_img.save(output_file, "PNG")
 
-    if not set_background(output_file):
-        exit_thread("Your desktop environment '{}' is not supported!\n".format(get_desktop_environment()))
+    if not args.no_set_bg:
+        if not set_background(output_file):
+            exit_thread("Your desktop environment '{}' is not supported!\n".format(get_desktop_environment()))
 
 def main():
     args = parse_args()
