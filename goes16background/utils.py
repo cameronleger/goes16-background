@@ -70,6 +70,8 @@ def set_background(file_path):
                         raise e
             else:
                 print("Couldn't detect plasmashell 5.7 or higher.")
+        elif de == "sway":
+            subprocess.call(["swaymsg", "output", "*", "bg", file_path, "fit", "#000000"])
         elif has_program("feh"):
             print("Couldn't detect your desktop environment ('{}'), but you have "
                   "'feh' installed so we will use it...".format(de))
@@ -103,7 +105,7 @@ def get_desktop_environment():
             desktop_session = desktop_session.lower()
             if desktop_session in ["gnome", "unity", "cinnamon", "mate", "xfce4", "lxde", "fluxbox",
                                    "blackbox", "openbox", "icewm", "jwm", "afterstep", "trinity", "kde", "pantheon",
-                                   "gnome-classic", "i3", "budgie-desktop"]:
+                                   "gnome-classic", "i3", "budgie-desktop", "sway"]:
                 return desktop_session
             ## Special cases ##
             # Canonical sets $DESKTOP_SESSION to Lubuntu rather than LXDE if using LXDE.
