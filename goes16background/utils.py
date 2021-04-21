@@ -71,7 +71,7 @@ def set_background(file_path):
             else:
                 print("Couldn't detect plasmashell 5.7 or higher.")
         elif de == "sway":
-            subprocess.call(["swaybg", "-c", "000000", "-i", file_path])
+            subprocess.call(["swaybg", "-c", "#000000", "-i", file_path])
         elif has_program("feh"):
             print("Couldn't detect your desktop environment ('{}'), but you have "
                   "'feh' installed so we will use it...".format(de))
