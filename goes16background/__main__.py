@@ -30,7 +30,7 @@ from .utils import set_background, get_desktop_environment, is_discharging, down
 GOES16_BG_VERSION = (1, 2, 0)
 counter = None
 TILE_SIZE = 678
-BASE_URL = "http://rammb-slider.cira.colostate.edu/data"
+BASE_URL = "https://rammb-slider.cira.colostate.edu/data"
 
 # The image is yuuge
 warnings.simplefilter('ignore', Image.DecompressionBombWarning)
@@ -75,7 +75,7 @@ def download_chunk(args):
 
     base_url, latest, x, y, level, tile_count = args
     url_format = base_url + "/imagery/{}/goes-16---full_disk/natural_color/{}/0{}/00{}_00{}.png"
-    url = url_format.format(strftime("%Y%m%d", latest), strftime("%Y%m%d%H%M%S", latest), level, y, x)
+    url = url_format.format(strftime("%Y/%m/%d", latest), strftime("%Y%m%d%H%M%S", latest), level, y, x)
 
     tiledata = download(url)
 
