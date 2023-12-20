@@ -133,7 +133,7 @@ def thread_main(args):
         resize_ratio = min(composite_width / goes16_width, composite_height / goes16_height)
 
         goes16_img = goes16_img.resize((round(goes16_width * resize_ratio), round(goes16_height * resize_ratio)),
-            Image.ANTIALIAS)
+            Image.LANCZOS)
 
         radius_img = min(goes16_width, goes16_height) * resize_ratio / 2
         goes16_center_img = Image.new("RGB", (composite_width, composite_height), "black")
